@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kawaii Discrete Math Tic-Tac-Toe — 2 Player</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#fff0f7;
+    --card:#ffdff2;
+    --accent:#ffb7e6;
+    --accent-2:#ff9ad9;
+    --muted:#ffedf7;
+    --text:#3b0a2b;
+    --glow: 0 10px 30px rgba(255, 150, 215, .18);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family: 'Comfortaa', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: radial-gradient(circle at 10% 10%, #ffeef7 0%, var(--bg) 35%, #fff8fc 100%);
+    color:var(--text);
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+
+  .app {
+    width:100%;
+    max-width:980px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,245,250,0.95));
+    border-radius:26px;
+    padding:24px;
+    box-shadow: var(--glow);
+    border: 1px solid rgba(255,182,214,0.35);
+  }
+
+  header{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .brand{
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .logo{
+    width:64px;height:64px;border-radius:18px;
+    background: linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;font-size:30px;
+    color:white;box-shadow:0 8px 20px rgba(255,138,201,.18);
+  }
+  h1{font-size:20px;margin:0}
+  .subtitle{font-size:12px;color:#7a2856;margin-top:2px}
+
+  .main{
+    display:grid;
+    grid-template-columns: 360px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  @media(max-width:880px){
+    .main{grid-template-columns:1fr}
+  }
+
+  .card{
+    background: linear-gradient(180deg,var(--card),var(--muted));
+    padding:16px;border-radius:18px;border:1px solid rgba(255,182,214,.4);
+    box-shadow: 0 6px 22px rgba(255,160,200,.12);
+  }
+  .board-wrap{display:flex;flex-direction:column;gap:10px;align-items:center}
+  .turn{
+    background:rgba(255,255,255,0.6);padding:8px 12px;border-radius:14px;
+    display:flex;gap:10px;align-items:center;
+  }
+  .player-dot{width:14px;height:14px;border-radius:50%}
+  .x-dot{background:#ff7abf}
+  .o-dot{background:#ff9ad9}
+
+  .grid{
+    width:300px;height:300px;display:grid;grid-template-columns:repeat(3,1fr);
+    gap:10px;margin-top:8px;
+  }
+  .cell{
+    background:linear-gradient(180deg, #fff, rgba(255,250,255,0.9));
+    border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:48px;font-weight:700;color:#b1004a;cursor:pointer;border: 2px solid rgba(255,182,214,.35);
+    user-select:none;transition:transform .12s;
+    box-shadow: 0 8px 18px rgba(255,160,200,.06);
+  }
+  .cell:hover{transform:translateY(-4px)}
+  .cell.disabled{cursor:not-allowed;opacity:.65;transform:none}
+  .cell.win{background:linear-gradient(135deg,#ffecf8,#ffe4f4);border: 2px solid #ff89d1}
+
+  .controls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  button.btn{
+    background:var(--accent);border:none;padding:10px 14px;border-radius:12px;color:white;
+    font-weight:700;cursor:pointer;box-shadow:0 8px 18px rgba(255,140,190,.12);
+  }
+  button.ghost{background:transparent;border:1px solid rgba(255,140,190,.2);color:var(--text);font-weight:700}
+
+  .info{
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .score{
+    display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;
+    background:linear-gradient(180deg,#fff,#fff8fb);border:1px solid rgba(255,200,230,.6);
+  }
+  .big-score{font-size:28px;font-weight:800;color:#7a0d43}
+  .small{font-size:12px;color:#7a2856}
+
+  .overlay{
+    position:fixed;inset:0;background:linear-gradient(rgba(255,240,248,.6), rgba(255,240,248,.8));
+    display:flex;align-items:center;justify-content:center;backdrop-filter: blur(4px);
+  }
+  .start-card{
+    width:92%;max-width:720px;border-radius:20px;padding:20px;background:linear-gradient(180deg,#ffffff,#fff0f7);
+    border:1px solid rgba(255,182,214,.3);box-shadow:var(--glow);display:flex;gap:18px;align-items:center;
+  }
+  .start-left{flex:1}
+  .start-right{width:240px;display:flex;flex-direction:column;gap:8px;align-items:center}
+
+  input.name{
+    width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,140,190,.25);
+    font-weight:700;background:transparent
+  }
+  .muted-note{font-size:12px;color:#7a2856;opacity:.85}
+
+  .modal{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:linear-gradient(180deg,#fff,#fff6fb);padding:18px;border-radius:14px;width:92%;max-width:520px;
+    border:1px solid rgba(255,182,214,.35);box-shadow:0 20px 60px rgba(255,145,200,.12);z-index:50;
+  }
+  .modal h3{margin:0 0 8px 0}
+  .q-text{background:linear-gradient(180deg,#fff0f7,#fff6fb);padding:12px;border-radius:12px;border:1px dashed rgba(255,150,200,.2)}
+  .modal .row{display:flex;gap:8px;margin-top:10px}
+  .answer{flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,140,190,.18);font-weight:700}
+  .small-muted{font-size:12px;color:#8e2b5b;margin-top:6px}
+
+  .center{display:flex;align-items:center;justify-content:center}
+  .footer{
+    margin-top:16px;font-size:12px;color:#7a2856;text-align:center
+  }
+
+  .kawaii{
+    display:inline-block;border-radius:10px;padding:6px 10px;background:linear-gradient(90deg,#ffe7f5,#ffdff2);
+    border:1px solid rgba(255,160,210,.35);
+  }
+
+</style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Kawaii Discrete Math Tic Tac Toe">
+    <header>
+      <div class="brand">
+        <div class="logo">💖</div>
+        <div>
+          <h1>Kawaii Discrete Math Tic-Tac-Toe</h1>
+          <div class="subtitle">Two players • Solve a question to place your move ✨</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="small muted-note">Theme: Pink Kawaii • Local 2-player</div>
+        <div style="margin-top:8px">
+          <button class="btn" id="btn-new-round">New Round</button>
+          <button class="ghost" id="btn-reset-scores">Reset Scores</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="main">
+      <!-- Left: Board -->
+      <div class="card">
+        <div class="board-wrap">
+          <div class="turn" id="turn-indicator" aria-live="polite">
+            <div style="font-size:14px">Turn:</div>
+            <div id="turn-player" style="font-weight:800;margin-left:6px">—</div>
+            <div style="margin-left:8px" class="small-muted">(<span id="turn-mark">X</span>)</div>
+          </div>
+
+          <div class="grid" id="grid" role="grid" aria-label="Tic tac toe board">
+            <!-- 9 cells dynamically created -->
+          </div>
+
+          <div class="controls">
+            <button class="btn" id="btn-show-rules">Rules</button>
+            <button class="ghost" id="btn-undo" title="Undo last valid move">Undo (1)</button>
+            <button class="ghost" id="btn-surrender">Surrender</button>
+          </div>
+
+          <div style="margin-top:10px; display:flex;gap:8px;flex-wrap:wrap">
+            <div class="small-muted">Round status: <span id="round-status">Waiting to start</span></div>
+            <div class="small-muted">Moves made: <span id="moves-count">0</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="info">
+        <div class="score">
+          <div>
+            <div class="small-muted">Player 1</div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <div class="player-dot x-dot"></div>
+              <div id="p1-name" style="font-weight:800">Player 1</div>
+            </div>
+          </div>
+          <div class="big-score" id="p1-score">0</div>
+        </div>
+
+        <div class="score">
+          <div>
+            <div class="small-muted">Player 2</div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <div class="player-dot o-dot"></div>
+              <div id="p2-name" style="font-weight:800">Player 2</div>
+            </div>
+          </div>
+          <div class="big-score" id="p2-score">0</div>
+        </div>
+
+        <div class="card" style="padding:12px">
+          <div style="font-weight:800">Game Options</div>
+          <div style="margin-top:8px;font-size:13px;color:#7a2856">Mark choices: Player 1 = X, Player 2 = O. Both players share the device and take turns.</div>
+
+          <div style="margin-top:10px;display:flex;gap:8px;flex-direction:column">
+            <label class="small-muted">Player 1 name</label>
+            <input class="name" id="input-p1" placeholder="Player 1 (X)" />
+            <label class="small-muted">Player 2 name</label>
+            <input class="name" id="input-p2" placeholder="Player 2 (O)" />
+            <button class="btn" id="btn-apply-names">Apply Names</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:800">Hints & Sample Question Types</div>
+          <ul style="margin:8px 0 0 18px;color:#7a2856">
+            <li>Simple modular arithmetic: "What is 13 mod 5?"</li>
+            <li>Set sizes: "If A={1,2,3}, B={2,3,4}, |A∪B| = ?"</li>
+            <li>Logical equivalence: answer Yes/No to statements like "p→q ≡ ¬p∨q?"</li>
+            <li>Binary/parity questions: "Is 1011 (binary) odd or even?"</li>
+          </ul>
+        </div>
+
+        <div class="footer">Made with love ✨ • Good luck and have fun solving!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="start-screen" role="dialog" aria-modal="true">
+    <div class="start-card">
+      <div class="start-left">
+        <h2 style="margin:0">Welcome, cutie! 💖</h2>
+        <div style="margin-top:6px;color:#7a2856">Before each move, solve a discrete-math question to place your mark. Be honest — no peeking at the answer list! 😇</div>
+
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label class="small-muted">Player 1 name</label>
+            <input class="name" id="start-p1" placeholder="Player 1 (X)" />
+          </div>
+          <div>
+            <label class="small-muted">Player 2 name</label>
+            <input class="name" id="start-p2" placeholder="Player 2 (O)" />
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" id="btn-start">Start Game</button>
+          <button class="ghost" id="btn-rules-2">Quick Rules</button>
+        </div>
+
+        <div style="margin-top:12px;font-size:13px;color:#7a2856">
+          Tip: choose names, press <span class="kawaii">Start Game</span>, then click any empty square to answer a question and place your X or O.
+        </div>
+      </div>
+
+      <div class="start-right center">
+        <div style="text-align:center">
+          <div style="font-size:60px">🌸</div>
+          <div style="margin-top:6px;font-weight:800">Pink Kawaii Mode</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-container" aria-hidden="true"></div>
+
+<script>
+
+(() => {
+  const state = {
+    board: Array(9).fill(null), 
+    turn: 'X',
+    started: false,
+    moves: 0,
+    history: [], 
+    scores: { X:0, O:0 },
+    playerNames: { X: 'Player 1', O: 'Player 2' }
+  };
+
+  const grid = document.getElementById('grid');
+  const turnPlayerEl = document.getElementById('turn-player');
+  const turnMarkEl = document.getElementById('turn-mark');
+  const roundStatusEl = document.getElementById('round-status');
+  const movesCountEl = document.getElementById('moves-count');
+  const p1ScoreEl = document.getElementById('p1-score');
+  const p2ScoreEl = document.getElementById('p2-score');
+  const p1NameEl = document.getElementById('p1-name');
+  const p2NameEl = document.getElementById('p2-name');
+  const inputP1 = document.getElementById('input-p1');
+  const inputP2 = document.getElementById('input-p2');
+  const modalContainer = document.getElementById('modal-container');
+  const startScreen = document.getElementById('start-screen');
+  const startP1 = document.getElementById('start-p1');
+  const startP2 = document.getElementById('start-p2');
+
+  function createGrid(){
+    grid.innerHTML = '';
+    for(let i=0;i<9;i++){
+      const d = document.createElement('div');
+      d.className = 'cell';
+      d.dataset.index = i;
+      d.setAttribute('role','button');
+      d.setAttribute('aria-label', 'Cell ' + (i+1));
+      d.addEventListener('click', onCellClick);
+      grid.appendChild(d);
+    }
+    refreshBoard();
+  }
+
+  function refreshBoard(){
+    for(let i=0;i<9;i++){
+      const cell = grid.children[i];
+      const val = state.board[i];
+      cell.textContent = val ? val : '';
+      cell.classList.toggle('disabled', !!val || !state.started);
+      cell.classList.remove('win');
+    }
+    turnPlayerEl.textContent = state.playerNames[state.turn] || (state.turn === 'X' ? 'Player 1' : 'Player 2');
+    turnMarkEl.textContent = state.turn;
+    movesCountEl.textContent = state.moves.toString();
+    roundStatusEl.textContent = state.started ? 'In progress' : 'Not started';
+    p1NameEl.textContent = state.playerNames['X'];
+    p2NameEl.textContent = state.playerNames['O'];
+    p1ScoreEl.textContent = state.scores['X'];
+    p2ScoreEl.textContent = state.scores['O'];
+  }
+
+  function startRound(){
+    state.board = Array(9).fill(null);
+    state.turn = 'X';
+    state.started = true;
+    state.moves = 0;
+    state.history = [];
+    refreshBoard();
+    startScreen.style.display = 'none';
+  }
+
+  function endRound(result){
+    state.started = false;
+    if(result.winner){
+      result.line.forEach(i => {
+        grid.children[i].classList.add('win');
+      });
+      roundStatusEl.textContent = `${state.playerNames[result.winner]} (${result.winner}) wins!`;
+      state.scores[result.winner] += 1;
+    } else {
+      roundStatusEl.textContent = 'Draw!';
+    }
+    refreshBoard();
+  }
+
+  function checkGame(board){
+    const lines = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+    for(const l of lines){
+      const [a,b,c] = l;
+      if(board[a] && board[a] === board[b] && board[a] === board[c]){
+        return { winner: board[a], line: l };
+      }
+    }
+    if(board.every(x => x !== null)) return { winner: null };
+    return null;
+  }
+
+  document.getElementById('btn-undo').addEventListener('click', ()=>{
+    if(state.history.length === 0){ alert('No move to undo.'); return; }
+    const last = state.history.pop();
+    state.board[last.index] = null;
+    state.turn = last.mark; // give turn back to who moved
+    state.moves = Math.max(0, state.moves-1);
+    state.started = true;
+    refreshBoard();
+  });
+
+  document.getElementById('btn-surrender').addEventListener('click', ()=>{
+    if(!state.started){ alert('Game not started.'); return; }
+    const loser = state.turn;
+    const winner = loser === 'X' ? 'O' : 'X';
+    alert(`${state.playerNames[loser]} surrendered! ${state.playerNames[winner]} wins this round.`);
+    state.scores[winner] += 1;
+    endRound({ winner, line: [] });
+  });
+
+  document.getElementById('btn-new-round').addEventListener('click', ()=>{
+    startScreen.style.display = 'flex';
+  });
+
+  document.getElementById('btn-reset-scores').addEventListener('click', ()=>{
+    if(confirm('Reset both players\' scores to 0?')){
+      state.scores = { X:0, O:0 };
+      refreshBoard();
+    }
+  });
+
+  document.getElementById('btn-apply-names').addEventListener('click', ()=>{
+    const n1 = inputP1.value.trim();
+    const n2 = inputP2.value.trim();
+    if(n1) state.playerNames['X'] = n1;
+    if(n2) state.playerNames['O'] = n2;
+    refreshBoard();
+  });
+
+  document.getElementById('btn-start').addEventListener('click', ()=>{
+    const n1 = startP1.value.trim();
+    const n2 = startP2.value.trim();
+    if(n1) state.playerNames['X'] = n1;
+    if(n2) state.playerNames['O'] = n2;
+    inputP1.value = state.playerNames['X'];
+    inputP2.value = state.playerNames['O'];
+    startRound();
+  });
+
+  document.getElementById('btn-rules-2').addEventListener('click', ()=> showQuickRules());
+  document.getElementById('btn-show-rules').addEventListener('click', ()=> showQuickRules());
+
+  function showQuickRules(){
+    alert(
+`Rules (quick):
+1) Two players share the device. Player 1 = X, Player 2 = O.
+2) Click an empty cell to attempt a move. A discrete-math question will appear.
+3) Answer correctly to place your mark; otherwise the move is denied and turn stays the same.
+4) First to get 3 in a row wins the round. Draw if grid fills.
+5) You can undo one previous valid move with Undo.
+Good luck! ✨`
+    );
+  }
+
+  function onCellClick(e){
+    if(!state.started){ alert('Start a game first (press Start Game).'); return; }
+    const idx = Number(e.currentTarget.dataset.index);
+    if(state.board[idx]) { return; }
+    const q = generateQuestion();
+    showQuestionModal(q, (isCorrect, answerGiven) => {
+      if(isCorrect){
+        state.board[idx] = state.turn;
+        state.history.push({ index: idx, mark: state.turn });
+        state.moves += 1;
+        const result = checkGame(state.board);
+        if(result && result.winner !== undefined){
+          endRound(result);
+        } else {
+          state.turn = state.turn === 'X' ? 'O' : 'X';
+          refreshBoard();
+        }
+      } else {
+        flashTemporary(`${state.playerNames[state.turn]}: incorrect — move denied!`, 2200);
+      }
+    });
+  }
+
+  function flashTemporary(msg, ms=1800){
+    const prev = roundStatusEl.textContent;
+    roundStatusEl.textContent = msg;
+    setTimeout(()=> roundStatusEl.textContent = prev, ms);
+  }
+
+  function generateQuestion(){
+    const pool = [
+      genModQuestion,
+      genSetQuestion,
+      genLogicEquivQuestion,
+      genBinaryParityQuestion,
+      genTruthTableQuestion,
+      genGcdQuestion,
+      genExprSimplifyQuestion
+    ];
+    const fn = pool[Math.floor(Math.random()*pool.length)];
+    return fn();
+  }
+
+  function genModQuestion(){
+    const a = randInt(6,40);
+    const b = randInt(2,9);
+    return {
+      text: `What is ${a} mod ${b}?`,
+      check: ans => Number(ans) === (a % b),
+      hint: 'Compute remainder when dividing.'
+    };
+  }
+
+  function genSetQuestion(){
+    const universe = [...Array(10).keys()].map(i => i+1);
+    shuffle(universe);
+    const sizeA = randInt(2,5);
+    const sizeB = randInt(2,5);
+    const A = universe.slice(0,sizeA);
+    const B = universe.slice(sizeA, sizeA+sizeB);
+    const union = Array.from(new Set([...A,...B]));
+    const inter = A.filter(x => B.includes(x));
+    const type = Math.random() < 0.5 ? 'union' : 'intersection';
+    if(type === 'union'){
+      return {
+        text: `A = {${A.join(',')}}, B = {${B.join(',')}}. What is |A ∪ B| (size of union)?`,
+        check: ans => Number(ans) === union.length,
+        hint: 'Count distinct elements in both sets.'
+      };
+    } else {
+      return {
+        text: `A = {${A.join(',')}}, B = {${B.join(',')}}. What is |A ∩ B| (size of intersection)?`,
+        check: ans => Number(ans) === inter.length,
+        hint: 'Count elements present in both.'
+      };
+    }
+  }
+
+  function genLogicEquivQuestion(){
+    const Qs = [
+      { text: 'Is p → q equivalent to ¬p ∨ q? (Yes/No)', ans: 'yes' },
+      { text: 'Is p ∧ (q ∨ r) equivalent to (p ∧ q) ∨ (p ∧ r)? (Yes/No)', ans: 'yes' }, // distribution
+      { text: 'Is p ∨ (q ∧ r) equivalent to (p ∨ q) ∧ (p ∨ r)? (Yes/No)', ans: 'yes' } // distributive law
+    ];
+    const q = Qs[Math.floor(Math.random()*Qs.length)];
+    return {
+      text: q.text,
+      check: ans => {
+        const a = String(ans).trim().toLowerCase();
+        return a === q.ans || a === q.ans.slice(0,1);
+      },
+      hint: 'Answer Yes or No (y/n).'
+    };
+  }
+
+  function genBinaryParityQuestion(){
+    const n = randInt(2,12);
+    const bin = n.toString(2);
+    const askType = Math.random() < 0.5 ? 'oddOrEven' : 'decimal';
+    if(askType === 'oddOrEven'){
+      return {
+        text: `Is ${bin} (binary) odd or even? (odd/even)`,
+        check: ans => (ans+'').trim().toLowerCase() === ( (n % 2 === 0) ? 'even' : 'odd'),
+        hint: 'Check the least significant bit (rightmost).'
+      };
+    } else {
+      return {
+        text: `What is the decimal value of ${bin} (binary)?`,
+        check: ans => Number(ans) === n,
+        hint: 'Convert binary to decimal.'
+      };
+    }
+  }
+
+  function genTruthTableQuestion(){
+    const combos = [
+      {text: 'Given p=true, q=false: what is p XOR q? (true/false)', ans:true},
+      {text: 'Given p=false, q=false: what is p OR q? (true/false)', ans:false},
+      {text: 'Given p=true, q=true: what is p NAND q? (true/false)', ans:false}
+    ];
+    const pick = combos[Math.floor(Math.random()*combos.length)];
+    return {
+      text: pick.text,
+      check: ans => {
+        const a = (''+ans).trim().toLowerCase();
+        if(a === 'true' || a === 't') return pick.ans === true;
+        if(a === 'false' || a === 'f') return pick.ans === false;
+        // accept 1/0
+        if(a === '1' || a === '0') return (a === '1') === pick.ans;
+        return false;
+      },
+      hint: 'Answer true/false (or t/f).'
+    };
+  }
+
+  function genGcdQuestion(){
+    const a = randInt(8,80);
+    const b = randInt(2,40);
+    return {
+      text: `What is gcd(${a}, ${b})?`,
+      check: ans => Number(ans) === gcd(a,b),
+      hint: 'Greatest common divisor.'
+    };
+  }
+
+  function genExprSimplifyQuestion(){
+    const choices = [
+      {t:'Simplify: (p ∧ q) ∨ (p ∧ ¬q). Provide the simplified expression (use p,q).', ans:'p'},
+      {t:'Simplify: (p ∨ q) ∧ (p ∨ ¬q). Provide the simplified expression.', ans:'p ∨ (q ∧ ¬q)'}, 
+      {t:'Simplify: p ∧ (q ∨ ¬q). Provide the simplified expression.', ans:'p'}
+    ];
+    const pick = choices[Math.floor(Math.random()*choices.length)];
+    return {
+      text: pick.t,
+      check: ans => {
+        const a = (''+ans).trim().toLowerCase().replace(/\s+/g,'');
+        const b = pick.ans.trim().toLowerCase().replace(/\s+/g,'');
+        if(b === 'p') return a === 'p';
+        return a === b;
+      },
+      hint: 'Simplify using boolean identities.'
+    };
+  }
+  function randInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+  function shuffle(a){
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+  function gcd(a,b){ return b===0?Math.abs(a):gcd(b,a%b); }
+
+  function showQuestionModal(q, callback){
+    modalContainer.innerHTML = '';
+    modalContainer.setAttribute('aria-hidden','false');
+
+    const m = document.createElement('div');
+    m.className = 'modal';
+    const title = document.createElement('h3');
+    title.textContent = `${state.playerNames[state.turn]} — answer to place ${state.turn}`;
+    m.appendChild(title);
+
+    const qbox = document.createElement('div');
+    qbox.className = 'q-text';
+    qbox.textContent = q.text;
+    m.appendChild(qbox);
+
+    if(q.hint){
+      const hint = document.createElement('div');
+      hint.className = 'small-muted';
+      hint.textContent = 'Hint: ' + q.hint;
+      m.appendChild(hint);
+    }
+
+    const row = document.createElement('div');
+    row.className = 'row';
+    const input = document.createElement('input');
+    input.className = 'answer';
+    input.placeholder = 'Type your answer here (e.g. 3, yes, true, p)';
+    input.autofocus = true;
+    input.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') submit();
+    });
+    row.appendChild(input);
+
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'btn';
+    submitBtn.textContent = 'Submit';
+    submitBtn.addEventListener('click', submit);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'ghost';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', ()=>{
+      closeModal();
+      callback(false, null);
+    });
+
+    const btns = document.createElement('div');
+    btns.style.marginTop = '12px';
+    btns.style.display = 'flex';
+    btns.style.gap = '8px';
+    btns.appendChild(submitBtn);
+    btns.appendChild(cancelBtn);
+
+    m.appendChild(row);
+    m.appendChild(btns);
+
+    modalContainer.appendChild(m);
+
+    setTimeout(()=> input.focus(), 150);
+
+    function submit(){
+      const ans = input.value.trim();
+      if(ans === ''){ alert('Please type an answer.'); input.focus(); return; }
+      let ok = false;
+      try{
+        ok = !!q.check(ans);
+      }catch(err){
+        ok = false;
+      }
+      closeModal();
+      if(ok){
+        flashTemporary('Correct! Move placed ✨', 1400);
+        callback(true, ans);
+      } else {
+        flashTemporary('Incorrect — try next turn!', 1600);
+        callback(false, ans);
+      }
+    }
+
+    function closeModal(){
+      modalContainer.innerHTML = '';
+      modalContainer.setAttribute('aria-hidden','true');
+    }
+  }
+
+  createGrid();
+  refreshBoard();
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'r'){ startScreen.style.display = 'flex'; }
+  });
+
+})();
+</script>
+</body>
+</html>
